@@ -7,9 +7,11 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from imodels import get_clean_dataset
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 import matplotlib.pyplot as plt
 import pandas as pd
-
+import time
+import csv
 
 ########################################################################################################################
 
@@ -21,15 +23,18 @@ cart_hscart_estimators = [
 ]
 
 
-
 ########################################################################################################################
 # Define hyperparameters
 split_seeds = range(10)  # Ten random splits
 #lambda_list = [0.0, 0.1, 1.0, 10, 25.0, 50.0, 100.0]  # Lambda value list equal to the HS paper
 #lambda_list=[0.0]
 
-# Load Heart dataset
-specific_dataset_name = "haberman"
+######################
+#
+# DATASETS
+#
+##################
+specific_dataset_name = "credit_card_clean"
 X, y, feat_names = get_clean_dataset(specific_dataset_name, data_source="imodels")
 n_samples, n_features = X.shape
 #print(f"n_samples: {n_samples}, n_features: {n_features}")
@@ -58,24 +63,24 @@ for seed in split_seeds:
             # Train CART
             cart_model = model_class(**model_kwargs)
             #print("CART prin to fit")
-            cart_model.fit(X_train, y_train)
+            cart_model.fit(x_train_student, y_train_student)
             #print("CART meta to fit")
-            y_pred_proba = cart_model.predict_proba(X_test)[:, 1]
-            auc_cart = roc_auc_score(y_test, y_pred_proba)
+            y_pred_proba = cart_model.predict_proba(x_test_student) #[:, 1]
+            auc_cart = roc_auc_score(y_test_student, y_pred_proba, multi_class='ovo')
 
             # Append CART results
             results.append({
-                'Dataset': specific_dataset_name,
+                'Dataset': "Adult",
                 'Model': 'CART',
                 'Max Leaves': model_kwargs['max_leaf_nodes'],  # Directly taken from ModelConfig
                 'Lambda': None,  # CART does not use lambda
                 'AUC': auc_cart,
-                'Split Seed': seed
+                'Split Seed': "na"
             })
-            tree.plot_tree(cart_model)
+            #tree.plot_tree(cart_model)
 
         # Handle HSCART
-        elif model_name == 'HSCART':
+        if model_name == 'HSCART':
             # Set lambda list for HSCART
             print("ksekiname")
 
@@ -85,24 +90,32 @@ for seed in split_seeds:
             model = model_class(**model_kwargs)
             #print("ksekiname 2")
             #print("lambda prin : " + str(model.get_params))
-            model.fit(X_train, y_train)
+            start_time = time.time()
+            model.fit(x_train_student, y_train_student)
+            end_time = time.time()
+            print(f"Total time {model_kwargs['max_leaf_nodes']}: {(end_time - start_time) / 60}")
             #print("lambda meta : " + str(model.get_params))
 
             # Predict and calculate AUC
-            y_pred_proba = model.predict_proba(X_test)[:, 1]
-            auc_hscart = roc_auc_score(y_test, y_pred_proba)
+            y_pred_proba = model.predict_proba(x_test_student) # [:, 1]
+
+            predictions = model.predict(x_test_student)
+            accuracy = accuracy_score(y_test_student, predictions)
+
+            auc_hscart = roc_auc_score(y_test_student, y_pred_proba, multi_class='ovo')
             #print(f"HSCART selected lambda: {model.reg_param}")
 
             # Append HSCART results
             results.append({
-                'Dataset': specific_dataset_name,
+                'Dataset': "Adult",
                 'Model': 'HSCART',
                 'Max Leaves': model_kwargs['max_leaf_nodes'],  # Directly taken from ModelConfig
                 'Lambda': model.reg_param,  # Save the selected lambda
                 'AUC': auc_hscart,
-                'Split Seed': seed
+                'Split Seed': "na"
             })
             #print(model)
+            tree.plot_tree(model)
 
 # Convert results to DataFrame and save
 results_df = pd.DataFrame(results)
@@ -113,7 +126,7 @@ results_df.to_csv(f"{specific_dataset_name}_cart_hscart_results_combined_GTC.csv
 
 ########################################################################################################################
 # Load results of models
-results_df = pd.read_csv("haberman_cart_hscart_results_combined_GTC.csv")
+results_df = pd.read_csv("credit_card_clean_cart_hscart_results_combined_GTC.csv")
 
 # Step 1: Filter and organize data
 cart_results = results_df[results_df["Model"] == "CART"]
@@ -156,7 +169,7 @@ plt.yticks(custom_ticks, [f"{tick:.3f}" for tick in custom_ticks])
 # Add labels, title, and legend
 plt.xlabel("Number of Leaves", fontsize=12)
 plt.ylabel("AUC", fontsize=12)
-plt.title("Heart Dataset (n = 270, p = 15)", fontsize=14)
+plt.title("FASHION NO PCA", fontsize=14)
 plt.legend(fontsize=10)
 plt.grid(True, linestyle="--", alpha=0.7)
 plt.tight_layout()

@@ -9,14 +9,14 @@ from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from imodels import (
     GreedyTreeClassifier, GreedyTreeRegressor, HSTreeRegressorCV, HSTreeClassifier, HSTreeRegressor
 )
-from imodels_experiments.util import ModelConfig
+from util import ModelConfig
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 # ================= PATCH HSTreeClassifier FOR LAMBDA = 0 =================
 
 from copy import deepcopy
 
-from imodels_experiments.hierarchical_shrinkage import HSTreeClassifierCV
+from hierarchical_shrinkage import HSTreeClassifierCV
 
 
 
