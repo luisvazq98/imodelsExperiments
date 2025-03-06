@@ -14,7 +14,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 # ================= PATCH HSTreeClassifier FOR LAMBDA = 0 =================
 
-from copy import deepcopy
+#from copy import deepcopy
 
 from hierarchical_shrinkage import HSTreeClassifierCV
 
