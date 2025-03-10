@@ -101,19 +101,17 @@ ESTIMATORS_CLASSIFICATION = [
     [ModelConfig(
         'Random_Forest',
         RandomForestClassifier,
-        'n_estimators',
-        n,
-        other_params=RANDOM_FOREST_DEFAULT_KWARGS
-    ) for n in TREE_LEAF_NODES],
+        'max_leaf_nodes',
+        max_leaf
+    ) for max_leaf in TREE_LEAF_NODES],
 
-    # Gradient Boosting
+    # HS Random Forest
     [ModelConfig(
-        'Gradient_Boosting',
-        GradientBoostingClassifier,
-        'n_estimators',
-        n,
-        other_params=RANDOM_FOREST_DEFAULT_KWARGS
-    ) for n in TREE_LEAF_NODES],
+        'HSEnsemble',
+        partial(HSTreeClassifierCV, estimator_=RandomForestClassifier(max_leaf_nodes=max_leaf)),
+        'max_leaf_nodes',
+        max_leaf
+    ) for max_leaf in TREE_LEAF_NODES],
 ]
 
 
